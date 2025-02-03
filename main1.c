@@ -1,4 +1,5 @@
-//۵۹ * 185
+//403106827
+//۵۹ * 185   
 #include <stdio.h>
 #include <ncurses.h>
 #include <stdlib.h>
@@ -125,6 +126,28 @@ typedef struct {
 
 Backpack backpack = {{{"Mace", "\u2692"}}, {1}};
 
+#define MAX_SPELLS 3
+
+typedef struct {
+    char name[20];
+    char sign[5];
+    int count;
+} Spell;
+
+Spell spells[] = {
+    {"Health", "H", 0},
+    {"Speed", "S", 0},
+    {"Damage", "D", 0}
+};
+
+typedef struct {
+    Spell inventory[MAX_SPELLS];
+    int spell_count[MAX_SPELLS];
+} SpellBook;
+
+SpellBook spellbook = {{{"Health", "H", 0}, {"Speed", "S", 0}, {"Damage", "D", 0}}, {0}};
+
+
 Floor floors[MAX_FLOORS];
 int current_floor = 0;
 
@@ -174,6 +197,8 @@ void show_options_menu();
 void place_weapons(GameMap* map);
 void manage_inventory();
 void showMessage();
+void manage_spellbook();
+void place_spells(GameMap* map);
 
 int main() {
     user.hp = 1000;
@@ -555,7 +580,7 @@ void get_player_info() {
         scanw("%s", player.email);
 
         if (validate_email(player.email)) {
-            clrtoeol();
+            clrtoeol() ;
             break;
         } else {
             attron(COLOR_PAIR(11));
@@ -567,7 +592,7 @@ void get_player_info() {
 
     showMessage("New Game Started! Welcome, ", 3);
 
-    for (int i = 0; i < MAX_FLOORS; ++i) {
+    for(int i = 0; i < MAX_FLOORS; ++i) {
         GameMap* game_map = create_map(MAP_WIDTH, MAP_HEIGHT);
         generate_bsp_map(game_map);
         floors[i].map = game_map;
@@ -576,7 +601,8 @@ void get_player_info() {
     place_character(floors[current_floor].map);
     place_food(floors[current_floor].map);
     place_gold(floors[current_floor].map);
-    place_weapons(floors[current_floor].map); // اضافه کردن سلاح‌ها به اتاق‌ها
+    place_weapons(floors[current_floor].map); 
+    place_spells(floors[current_floor].map); 
     visit_room(floors[current_floor].map, 0);
     draw_map(floors[current_floor].map, 0);
     refresh();
@@ -674,7 +700,7 @@ void load_game() {
     }
     fclose(file);
 
-    if (found) {
+   if (found) {
         mvprintw(2, 0, "Login successful! Loading game...");
         refresh();
         sleep(1);
@@ -688,7 +714,8 @@ void load_game() {
         place_character(floors[current_floor].map);
         place_food(floors[current_floor].map);
         place_gold(floors[current_floor].map);
-        place_weapons(floors[current_floor].map); // اضافه کردن سلاح‌ها به اتاق‌ها
+        place_weapons(floors[current_floor].map);
+        place_spells(floors[current_floor].map); 
         visit_room(floors[current_floor].map, 0);
         draw_map(floors[current_floor].map, 0);
         refresh();
@@ -722,7 +749,8 @@ void guest_login() {
     place_character(floors[current_floor].map);
     place_food(floors[current_floor].map);
     place_gold(floors[current_floor].map);
-    place_weapons(floors[current_floor].map); // اضافه کردن سلاح‌ها به اتاق‌ها
+    place_weapons(floors[current_floor].map); 
+    place_spells(floors[current_floor].map); 
     visit_room(floors[current_floor].map, 0);
     draw_map(floors[current_floor].map, 0);
     refresh();
@@ -961,6 +989,15 @@ void draw_map(GameMap* map, int highlight) {
             }
             else if(map->tiles[y][x] == 's') {
                 mvprintw(y + 2, x, "\U00002694");
+            }
+            else if(map->tiles[y][x] == 'H') {
+                mvprintw(y + 2, x, "\U00010CE2");
+            }
+            else if(map->tiles[y][x] == 'S') {
+                mvprintw(y + 2, x, "\U0000209B");
+            }
+            else if(map->tiles[y][x] == 'D') {
+                mvprintw(y + 2, x, "\U00010927");
             }
         }
     }
@@ -1279,6 +1316,9 @@ void handle_input() {
             case 'i':      
                 manage_inventory();
                 break;
+            case 'I':
+                manage_spellbook();
+                break;
             case 'z': 
                 new_x--;
                 new_y++;
@@ -1329,22 +1369,13 @@ void handle_input() {
         if (new_x >= 0 && new_x < floors[current_floor].map->width && new_y >= 0 && new_y < floors[current_floor].map->height) {
             char target = floors[current_floor].map->tiles[new_y][new_x];
             if (target == '.' || target == '#' || target == '+' || target == '⇧' || target == '⇩' || target == '^' || target == '6' || target == 'F' || target == 'g' || target == 'G' || target == 'F' || target == 'd'
-               || target == 'w' || target == 'n' || target == 's') {
+               || target == 'w' || target == 'n' || target == 's' || target == 'H' || target == 'S' || target == 'D') {
                 floors[current_floor].map->tiles[user.y][user.x] = previous_tile;
                 previous_tile = target;
                 user.x = new_x;
                 user.y = new_y;
                 floors[current_floor].map->tiles[user.y][user.x] = '@'; 
 
-                // for (int i = 0; i < MAX_WEAPONS; ++i) {
-                //     if (target == weapons[i].sign[0]) {
-                //         backpack.weapon_count[i]++;
-                //         mvprintw(6, 0, "You picked up a %s! Total: %d", weapons[i].name, backpack.weapon_count[i]);
-                //         refresh();
-                //         previous_tile = '.';
-                //         break;
-                //     }
-                // }
                 if (target == 'g') {
                     int gold_amount = rand() % 20 + 1;
                     gold_count += gold_amount;
@@ -1378,38 +1409,81 @@ void handle_input() {
                     previous_tile = '.';
                 }
                 else if(target == 'd') {
-                    draw_map(floors[current_floor].map, 0);
+                    
                     char c = getchar();
-                    if(c == 'p') {
-                        weapons[1].n++;
-                        previous_tile = '.';
+                    if(c == 'p') { 
+                    weapons[1].n++;
+                    mvprintw(0, 0, "You picked up a Dagger! Total: %d", weapons[1].n);
+                    refresh();    
+                   
+                    previous_tile = '.';
                     }
                 }
                 else if(target == 'w') {
-                    draw_map(floors[current_floor].map, 0);
+                   
                     char c = getchar();
-                    if(c == 'p') {
-                        weapons[2].n++;
-                        previous_tile = '.';
-                    }
-                
+                    if(c == 'p') { 
+                    weapons[2].n++;
+                    mvprintw(0, 0, "You picked up a Magic Wand! Total: %d", weapons[2].n);
+                    refresh();
+                   
+                    previous_tile = '.';
+                }
                 }
                 else if(target == 'n') {
-                    draw_map(floors[current_floor].map, 0);
-                    char c = getchar();
+                    
+                     char c = getchar();
                     if(c == 'p') {
-                        weapons[3].n++;
-                        previous_tile = '.';
-                    }
-                
+                    weapons[3].n++;
+                    mvprintw(0, 0, "You picked up a Normal Arrow! Total: %d", weapons[3].n);
+                    refresh();    
+                    
+                    previous_tile = '.';
+                }
                 }
                 else if(target == 's') {
-                    draw_map(floors[current_floor].map, 0);
+                   
+                     char c = getchar();
+                    if(c == 'p') { 
+                    weapons[4].n++;
+                    mvprintw(0, 0, "You picked up a Sword! Total: %d", weapons[4].n);
+                    refresh();
+                   
+                    previous_tile = '.';
+                }
+                }
+                else if(target == 'H') {
+                    
+                   char c = getchar();
+                    if(c == 'p') {
+                   spells[0].count++;
+                   mvprintw(0, 0, "You picked up a Health Spell! Total: %d", spells[0].count);
+                    refresh(); 
+                    
+                    previous_tile = '.';
+                }
+                }
+                else if(target == 'S') {
+                    
                     char c = getchar();
                     if(c == 'p') {
-                        weapons[4].n++;
-                        previous_tile = '.';
-                    }
+                    spells[1].count++;
+                  mvprintw(0, 0, "You picked up a Speed Spell! Total: %d", spells[1].count);
+                    refresh();  
+                    
+                    previous_tile = '.';
+                }
+                }
+                else if(target == 'D') {
+                   
+                    char c = getchar();
+                    if(c == 'p') {
+                    spells[2].count++;
+                     mvprintw(0, 0, "You picked up a Damage Spell! Total: %d", spells[2].count);
+                    refresh();
+                    
+                    previous_tile = '.';
+                }
                 }
             }
         }
@@ -1424,7 +1498,6 @@ void handle_input() {
         refresh();
     }
 }
-
 // برای پله به طبقه بعدی
 // void place_stairs(GameMap* map, int exclude_room_index, char stair_symbol) {
 //     int room_index;
@@ -1478,7 +1551,8 @@ void place_food(GameMap* map) {
         Room room = map->rooms[i];
         int food_x = room.x + 1 + rand() % (room.width - 2);
         int food_y = room.y + 1 + rand() % (room.height - 2);
-        map->tiles[food_y][food_x] = 'F';
+        if(map->tiles[food_y][food_x] != '.') 
+         map->tiles[food_y][food_x] = 'F';
     }
 }
 void manage_food_menu() {
@@ -1595,17 +1669,47 @@ void place_weapons(GameMap* map) {
         Room room = map->rooms[i];
         int weapon_x = room.x + 1 + rand() % (room.width - 2);
         int weapon_y = room.y + 1 + rand() % (room.height - 2);
-        int weapon_index = rand() % MAX_WEAPONS;
-        if(map->tiles[weapon_y][weapon_x] == '.')
+        int weapon_index;
+
+        // Ensure the selected weapon is not Mace
+        do {
+            weapon_index = rand() % MAX_WEAPONS;
+        } while (strcmp(weapons[weapon_index].name, "Mace") == 0);
+
+        if (map->tiles[weapon_y][weapon_x] == '.') {
             map->tiles[weapon_y][weapon_x] = weapons[weapon_index].sign[0];
+        }
     }
 }
-
+void place_spells(GameMap* map) {
+    for (int i = 0; i < map->room_count; ++i) {
+        Room room = map->rooms[i];
+        int spell_x = room.x + 1 + rand() % (room.width - 2);
+        int spell_y = room.y + 1 + rand() % (room.height - 2);
+        int spell_index = rand() % MAX_SPELLS;
+        if(map->tiles[spell_y][spell_x] == '.')
+            map->tiles[spell_y][spell_x] = spells[spell_index].sign[0];
+    }
+}
+void manage_spellbook() {
+    clear();
+    mvprintw(0, 0, "SpellBook (Press 'I' to exit)");
+    for (int i = 0; i < MAX_SPELLS; ++i) {
+        mvprintw(i + 1, 0, "%s: %d", spells[i].name, spells[i].count);
+    }
+    refresh();
+    while (1) {
+        char c = getch();
+        if (c == 'I' || c == 'i') {
+            break;
+        }
+    }
+}
 void manage_inventory() {
     clear();
     mvprintw(0, 0, "Inventory (Press 'I' to exit)");
     for (int i = 0; i < MAX_WEAPONS; ++i) {
-        mvprintw(i + 1, 0, "%s: %d", weapons[i].name, weapons[i].n);
+        mvprintw(i + 1, 0, "%s: %d", weapons[i].name, backpack.weapon_count[i]);
     }
     refresh();
     while (1) {
