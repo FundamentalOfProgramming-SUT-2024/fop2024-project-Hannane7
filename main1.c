@@ -1366,7 +1366,7 @@ void draw_map(GameMap* map, int highlight) {
                         attron(COLOR_PAIR(10));
                         break;
                     case '.':
-                        attron(COLOR_PAIR(28)); // تغییر رنگ کف زمین
+                        attron(COLOR_PAIR(28)); 
                         mvaddch(y + 2, x, '.');
                         attroff(COLOR_PAIR(28));
                         attron(COLOR_PAIR(10));
@@ -2402,6 +2402,7 @@ void move_monsters(GameMap* map) {
     }
 }
 
+
 void move_monster_towards_player(GameMap* map, Monster *monster) {
     int dx = 0;
     int dy = 0;
@@ -2417,13 +2418,13 @@ void move_monster_towards_player(GameMap* map, Monster *monster) {
 
     char target_tile = map->tiles[new_y][new_x];
     if (target_tile == '.' || target_tile == '#' || target_tile == '+') {
-
         map->tiles[monster->y][monster->x] = monster->previous_tile;
         monster->previous_tile = target_tile;
 
         monster->x = new_x;
         monster->y = new_y;
         map->tiles[monster->y][monster->x] = monster->type;
+    } else if (target_tile == 'S' || target_tile == 'U') {
     }
 }
 
@@ -2440,12 +2441,10 @@ void move_snake(GameMap* map, Monster *snake) {
     int new_x = snake->x + dx;
     int new_y = snake->y + dy;
 
-   
     char target_tile = map->tiles[new_y][new_x];
     if (target_tile == '.' || target_tile == '#' || target_tile == '+' || target_tile == '-') {
-     
         map->tiles[snake->y][snake->x] = snake->previous_tile;
-        snake->previous_tile = map->tiles[new_y][new_x]; 
+        snake->previous_tile = target_tile;
 
         snake->x = new_x;
         snake->y = new_y;
@@ -2454,11 +2453,12 @@ void move_snake(GameMap* map, Monster *snake) {
             map->tiles[new_y][new_x] = snake->type;
         }
     } else if (target_tile == 'D' || target_tile == 'F' || target_tile == 'G' || target_tile == 'U') {
-
         map->tiles[snake->y][snake->x] = snake->previous_tile;
-        snake->previous_tile = map->tiles[new_y][new_x]; 
+        snake->previous_tile = target_tile;
         snake->x = new_x;
         snake->y = new_y;
+    } else if (target_tile == 'S' || target_tile == 'U') {
+        
     }
 }
 
@@ -2473,7 +2473,6 @@ bool is_player_in_room(GameMap* map, int x, int y) {
     }
     return false;
 }
-
 // void make_scoreboard() {
 //     if(karbar == 1) {
 //         FILE* f = fopen("scoreboard1", "w");
