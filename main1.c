@@ -45,6 +45,7 @@ typedef struct {
     char title[MAX_LENGTH];
     char status[MAX_LENGTH];
 } ScoreEntry;
+
 typedef struct {
     char name[50], pass[50], email[50];
     int games_completed;
@@ -1129,11 +1130,13 @@ int load_scores(const char *filename, ScoreEntry *scores, int max_scores) {
 
     int count = 0;
     char buffer[256];
-    fgets(buffer, sizeof(buffer), file);  
+    fgets(buffer, sizeof(buffer), file);  // Skip the header line
+
     while (count < max_scores && fgets(buffer, sizeof(buffer), file)) {
         int items_read = sscanf(buffer, "%d %s %d %d %d %d %s %s", 
                                 &scores[count].rank, scores[count].username, &scores[count].score, &scores[count].gold, 
                                 &scores[count].completed_games, &scores[count].experience, scores[count].title, scores[count].status);
+        // If title or status are missing, set them to empty strings
         if (items_read < 7) {
             strcpy(scores[count].title, "");
         }
@@ -1157,13 +1160,13 @@ void show_score_board() {
 
     for (int i = 0; i < score_count; i++) {
         if (i == 0) {
-            attron(COLOR_PAIR(45) | A_BOLD);
+            attron(COLOR_PAIR(45) | A_BOLD); // First place
         } else if (i == 1) {
-            attron(COLOR_PAIR(23) | A_BOLD); 
+            attron(COLOR_PAIR(23) | A_BOLD); // Second place
         } else if (i == 2) {
-            attron(COLOR_PAIR(26) | A_BOLD); 
+            attron(COLOR_PAIR(23) | A_BOLD); // Third place
         } else {
-            attron(COLOR_PAIR(47));
+            attron(COLOR_PAIR(47)); // Other places
         }
 
         mvprintw(i + 3, 0, "| %-4d | %-10s | %-5d | %-5d | %-15d | %-10d | %-10s | %-6s |", 
@@ -1683,7 +1686,7 @@ void handle_input() {
             d_count = 0;
             d = 0;
         }
-        if (hunger_level < 100 && user.hp + 15 < 1000) {
+        if (hunger_level == 100 && user.hp + 15 < 1000 && h) {
             if (h) {
                 user.hp += 30;
             } else {
@@ -2249,6 +2252,18 @@ void manage_spellbook() {
         char c = getch();
         if (c == 'I' || c == 'i') {
             break;
+        }
+        else if(c == '1') {
+            h = 1;
+            spells[0].count--;
+        }
+        else if(c == '2') {
+            s = 1;
+            spells[1].count--;
+        }
+        else if(c == '3') {
+            d = 1;
+            spells[2].count--;
         }
     }
 }
