@@ -1129,13 +1129,11 @@ int load_scores(const char *filename, ScoreEntry *scores, int max_scores) {
 
     int count = 0;
     char buffer[256];
-    fgets(buffer, sizeof(buffer), file);  // Skip the header line
-
+    fgets(buffer, sizeof(buffer), file);  
     while (count < max_scores && fgets(buffer, sizeof(buffer), file)) {
         int items_read = sscanf(buffer, "%d %s %d %d %d %d %s %s", 
                                 &scores[count].rank, scores[count].username, &scores[count].score, &scores[count].gold, 
                                 &scores[count].completed_games, &scores[count].experience, scores[count].title, scores[count].status);
-        // If title or status are missing, set them to empty strings
         if (items_read < 7) {
             strcpy(scores[count].title, "");
         }
@@ -1259,22 +1257,22 @@ void draw_map(GameMap* map, int highlight) {
                         attron(COLOR_PAIR(10));
                         break;
                     case '|':
-                        attron(COLOR_PAIR(27)); // تغییر رنگ دیوارهای عمودی
+                        attron(COLOR_PAIR(27)); 
                         mvaddch(y + 2, x, '|');
                         attroff(COLOR_PAIR(27));
-                        attron(COLOR_PAIR(10)); // بازگرداندن رنگ پیش‌فرض
+                        attron(COLOR_PAIR(10)); 
                         break;
                     case '#':
-                        attron(COLOR_PAIR(29)); // تغییر رنگ راهروها به سفید
+                        attron(COLOR_PAIR(29)); 
                         mvaddch(y + 2, x, '#');
                         attroff(COLOR_PAIR(29));
                         attron(COLOR_PAIR(10));
                         break;
                     case '^':
-                        attron(COLOR_PAIR(28)); // تغییر رنگ راهروها به سفید
+                        attron(COLOR_PAIR(28)); 
                         mvaddch(y + 2, x, '.');
-                        attroff(COLOR_PAIR(28)); // تغییر رنگ راهروها به سفید
-                        attron(COLOR_PAIR(10)); // تغییر رنگ راهروها به سفید
+                        attroff(COLOR_PAIR(28)); 
+                        attron(COLOR_PAIR(10)); 
 
                         break;
                     case '6':
@@ -1383,7 +1381,7 @@ void draw_map(GameMap* map, int highlight) {
         }
     }
      attroff(COLOR_PAIR(10));
-    attron(COLOR_PAIR(hero_color)); // استفاده از رنگ انتخابی برای کاراکتر
+    attron(COLOR_PAIR(hero_color));
     mvprintw(user.y + 2, user.x, "@");
     refresh();
     attroff(COLOR_PAIR(hero_color));
